@@ -447,7 +447,7 @@ function scoreIt(){
   cov=hit/target.n;
   const colorN=new Set(strokes.filter(s=>!s.erase).map(s=>s.c)).size;
   const kinds=new Set(decos.map(d=>d.k)).size; // 裝扮越豐富分數越高：頭髮＋多種裝飾＋顏色＋換表情
-  let s=50+Math.min(1,cov/.3)*22+Math.min(kinds,4)*3+Math.min(decos.length,5)+Math.min(colorN,3)*2+(eyes!='dot'?2:0)+(tot>12000?3:0);
+  let s=50+Math.min(1,cov/.3)*22+Math.min(kinds,4)*4+Math.min(decos.length,5)+Math.min(colorN,3)*2+(eyes!='dot'?2:0)+(tot>12000?3:0);
   let msg;
   if(faceHit/face.n>.4){s-=12;msg='頭髮蓋到眼睛鼻子了，老公公看不到路了！'}
   s=Math.round(Math.max(30,Math.min(100,s)));
