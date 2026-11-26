@@ -281,7 +281,7 @@ SIZES.forEach((s,i)=>{const d=document.createElement('div');d.className='sz'+(i=
 DKEYS.forEach(k=>{const d=document.createElement('div');d.className='deco';d.title=DECO[k].name;const c=mk(120);const g=c.getContext('2d');g.translate(60,60);g.scale(.8,.8);DECO[k].draw(g,false);d.appendChild(c);
   d.onclick=()=>{if(mode!='draw')return;SFX.pop();buzz();const D=DECO[k];decos.push({k,x:D.x||500,y:D.y||200,s:D.s||1,r:0});sel=decos.length-1;render()};addHap(d);$('decos').appendChild(d)});
 ['dot','smile'].forEach((k,i)=>{const d=document.createElement('div');d.className='deco'+(i?'':' on');d.title=i?'笑瞇瞇':'圓眼睛';
-  const c=mk(120);c.getContext('2d').drawImage(BASES[k],OX+350*SC,OY+272*SC,300*SC,96*SC,0,40,120,38);d.appendChild(c);
+  const c=mk(120);c.getContext('2d').drawImage(BASES[k],OX+260*SC,OY+190*SC,480*SC,300*SC,0,22,120,75);d.appendChild(c);
   d.onclick=()=>{if(mode!='draw')return;SFX.tap();buzz();eyes=k;document.querySelectorAll('#eyes .deco').forEach(x=>x.classList.remove('on'));d.classList.add('on');render()};addHap(d);$('eyes').appendChild(d)});
 $('bErase').onclick=()=>{SFX.tap();erasing=!erasing;$('bErase').classList.toggle('on',erasing)};
 $('bUndo').onclick=()=>{SFX.tap(); if(lastOps.length){const o=lastOps.pop();if(o=='s')strokes.pop();else decos.pop();render()} };
@@ -460,7 +460,7 @@ async function makeCard(){
   g.font='700 34px '+F;g.fillStyle='#F2D79A';g.fillText('beafoo.com/pages/santa-hair',CW/2,1266);
   g.font='700 26px '+F;g.fillStyle='rgba(251,243,228,.7)';g.fillText('chubby doo',CW/2,1314);
   return k}
-window.__card=makeCard;
+window.__card=makeCard;window.__desel=()=>{sel=-1;render()};
 $('bShare').onclick=async()=>{ // 分享拍立得圖＋連結（手機叫出分享選單，電腦直接下載）
   SFX.tap();track('santa_share',{score:lastScore});
   const url=PAGE+'?utm_source=friend_share&utm_medium=social&utm_campaign='+CAMP;
