@@ -77,8 +77,8 @@ h1{margin:6px 0 4px;font-family:"Zen Maru Gothic","Noto Sans TC",sans-serif;font
   <div class="row"><span class="lab">粗細</span><div class="row" id="sizes" style="gap:6px"></div>
    <span style="flex:1"></span>
    <button class="btn" id="bErase">橡皮擦</button><button class="btn" id="bUndo">復原</button></div>
-  <div class="row"><span class="lab">裝飾</span><div class="row" id="decos" style="gap:6px"></div></div>
-  <div class="row"><span class="lab">眼睛</span><div class="row" id="eyes" style="gap:6px"></div></div>
+  <div class="row"><span class="lab" style="align-self:flex-start;margin-top:14px">裝飾</span><div class="row" id="decos" style="gap:6px;flex:1"></div></div>
+  <div class="row"><span class="lab" style="align-self:flex-start;margin-top:14px">眼睛</span><div class="row" id="eyes" style="gap:6px;flex:1"></div></div>
  </div>
  <button class="cta" id="bDone">畫好了！變身 ✦</button>
  <div class="tip">裝飾點一下放上去，按住移動；拉右下角圓鈕可縮放、旋轉</div>
@@ -108,7 +108,7 @@ const MODE='live';  // live＝正式版（只在活動期間開放、有 GA）�
 const LIVE=MODE==='live';
 // 活動期間（台北時間）：12/3（四）00:00 ～ 12/14（一）23:59
 const EV_START=Date.parse('2026-12-03T00:00:00+08:00'),EV_END=Date.parse('2026-12-15T00:00:00+08:00');
-const PAGE='https://www.beafoo.com/pages/santa-hair';   // 官網上的遊戲分頁（下方有聖誕千層酥商品）
+const PAGE='https://www.beafoo.com/pages/santa-party';   // 官網上的遊戲分頁（下方有聖誕千層酥商品）
 const CAMP='xmas2026_santa_hair';
 const IN_FRAME=(()=>{try{return window.top!==window.self}catch(e){return true}})();
 // 折扣碼打亂存放（原始碼裡看不到明碼）
@@ -168,9 +168,24 @@ function smoothPts(P,it=2){let p=P;for(let k=0;k<it;k++){const o=[];for(let i=0;
 
 // ---------- 手繪底圖（參考：粗黑乾筆外框、簡化對稱的胖胖造型、平塗色、紅色卡片底、錐形筆觸紋）----------
 const INK='#1A1210';
+if(!CanvasRenderingContext2D.prototype.roundRect)CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(Array.isArray(r)?r[0]:r,w/2,h/2);this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath()}; // 舊版 iOS
 const CARD='#1F4A3A';
 // 餅乾縮小擺在下方，上面留空間畫頭髮（手繪／照片／算分都用同一組）
 const SC=.84,OX=500-500*SC,OY=Math.round(955*(1-SC)); // 整體等比縮小、底部位置不變，上方留更多畫頭髮的空間
+// 眼睛款式（手繪版，底圖座標）
+const EYES=[['dot','圓眼睛'],['smile','笑瞇瞇'],['wink','眨眼'],['star','星星眼'],['heart','愛心眼'],['sleep','想睡']];
+function starPath(c,x,y,R,r,rot){c.beginPath();for(let i=0;i<10;i++){const a=(rot||0)-Math.PI/2+i*Math.PI/5,q=i%2?r:R;c.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}c.closePath()}
+function heartPath(c,x,y,s){c.beginPath();c.moveTo(x,y+s*.95);c.bezierCurveTo(x-s*1.7,y-s*.15,x-s*.75,y-s*1.35,x,y-s*.45);c.bezierCurveTo(x+s*.75,y-s*1.35,x+s*1.7,y-s*.15,x,y+s*.95);c.closePath()}
+function drawEyes(c,k){const L=[402,326],Rr=[598,326];c.save();c.lineCap=c.lineJoin='round';
+  const dot=([x,y])=>{c.fillStyle=INK;c.beginPath();c.ellipse(x,y,26,30,0,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.arc(x-8,y-10,9,0,7);c.fill();c.beginPath();c.arc(x+9,y+11,4,0,7);c.fill()};
+  const arc=([x,y],up)=>{c.strokeStyle=INK;c.lineWidth=15;c.beginPath();up?c.arc(x,y+12,27,Math.PI+.25,-.25):c.arc(x,y-8,25,.35,Math.PI-.35);c.stroke()};
+  if(k=='dot'){dot(L);dot(Rr)}
+  else if(k=='smile'){arc(L,1);arc(Rr,1)}
+  else if(k=='wink'){dot(L);arc(Rr,1)}
+  else if(k=='sleep'){arc(L,0);arc(Rr,0)}
+  else if(k=='star'){[L,Rr].forEach(([x,y])=>{starPath(c,x,y+4,40,18);c.fillStyle='#F2C94C';c.fill();c.strokeStyle=INK;c.lineWidth=9;c.stroke()})}
+  else if(k=='heart'){[L,Rr].forEach(([x,y])=>{heartPath(c,x,y+6,32);c.fillStyle='#E2474F';c.fill();c.strokeStyle=INK;c.lineWidth=9;c.stroke();c.fillStyle='rgba(255,255,255,.7)';c.beginPath();c.ellipse(x-13,y-6,6,9,.6,0,7);c.fill()})}
+  c.restore()}
 function drawBase(base,eyes){
   const c=base.getContext('2d');c.lineJoin='round';c.lineCap='round';
   // 紅色卡片底＋顆粒
@@ -218,13 +233,12 @@ function drawBase(base,eyes){
   // 眉毛：兩朵小雲
   part('#FFF3DC',13,g=>{[[318,248,40],[365,228,42],[412,246,36]].forEach(([x,y,r])=>circ(g,x,y,r));[[682,248,40],[635,228,42],[588,246,36]].forEach(([x,y,r])=>circ(g,x,y,r))});
   // 眼睛
-  if(eyes=='smile'){c.strokeStyle=INK;c.lineWidth=15;c.lineCap='round';[[402,338],[598,338]].forEach(([x,y])=>{c.beginPath();c.arc(x,y,27,Math.PI+.25,-.25);c.stroke()})} // 笑瞇瞇
-  else [[402,326],[598,326]].forEach(([x,y])=>{c.fillStyle=INK;circ(c,x,y,26,30);c.fillStyle='#fff';circ(c,x-8,y-10,9);circ(c,x+9,y+11,4)});
+  drawEyes(c,eyes);
   // 鼻子
   part('#E2404A',14,g=>circ(g,492,412,92,70));
   c.fillStyle='#FFD9CF';c.beginPath();c.ellipse(455,385,30,13,-.25,0,6.3);c.fill();
   c.restore();return base}
-const BASES={dot:drawBase(mk(W),'dot'),smile:drawBase(mk(W),'smile')};let eyes='dot';
+const BASES={};const getBase=k=>BASES[k]||(BASES[k]=drawBase(mk(W),k));getBase('dot');let eyes='dot';
 
 // ---------- 頭頂目標區（算分用）----------
 const target=(()=>{const m=mk(W);const c=m.getContext('2d');c.setTransform(SC,0,0,SC,OX,OY);c.fillStyle='#000';c.beginPath();S.pink.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.fill();
@@ -245,6 +259,21 @@ const DECO={
    c.lineCap='round';c.beginPath();c.moveTo(-68,-18);c.lineTo(-76,-24);c.moveTo(68,-18);c.lineTo(76,-24);c.stroke();
    c.fillStyle='rgba(255,255,255,.55)';[-1,1].forEach(k=>{c.beginPath();c.ellipse(k*36-14,-10,6,11,.5,0,6.3);c.fill()});
    if(!real){c.strokeStyle=INK;c.lineWidth=4;c.globalCompositeOperation='destination-over';c.lineWidth=17;lens();c.stroke();c.globalCompositeOperation='source-over'}}},
+ heartg:{name:'愛心眼鏡',s:2.3,x:500,y:427,draw(c,real){
+   const lens=()=>{c.beginPath();[-1,1].forEach(k=>{const x=k*38,y=0,s=30;c.moveTo(x,y+s*.95);c.bezierCurveTo(x-s*1.7,y-s*.15,x-s*.75,y-s*1.35,x,y-s*.45);c.bezierCurveTo(x+s*.75,y-s*1.35,x+s*1.7,y-s*.15,x,y+s*.95);c.closePath()})};
+   c.fillStyle=real?'#E99AAE':'#F7A1B5';lens();c.fill();c.lineWidth=8;c.strokeStyle=real?'#C9434B':'#E2474F';c.lineJoin='round';lens();c.stroke();
+   c.lineCap='round';c.beginPath();c.moveTo(-8,-12);c.quadraticCurveTo(0,-18,8,-12);c.moveTo(-84,-16);c.lineTo(-92,-22);c.moveTo(84,-16);c.lineTo(92,-22);c.stroke();
+   c.fillStyle='rgba(255,255,255,.6)';[-1,1].forEach(k=>{c.beginPath();c.ellipse(k*38-15,-12,5,9,.6,0,6.3);c.fill()});
+   if(!real){c.strokeStyle=INK;c.globalCompositeOperation='destination-over';c.lineWidth=16;lens();c.stroke();c.globalCompositeOperation='source-over'}}},
+ starg:{name:'星星眼鏡',s:2.3,x:500,y:427,draw(c,real){
+   const lens=()=>{c.beginPath();[-1,1].forEach(k=>{for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,q=i%2?17:38;c[i?'lineTo':'moveTo'](k*38+Math.cos(a)*q,4+Math.sin(a)*q)}c.closePath()})};
+   c.fillStyle=real?'#4A6E9A':'#5B8FD0';lens();c.fill();c.lineWidth=8;c.strokeStyle=real?'#E3BE62':'#F2C94C';c.lineJoin='round';lens();c.stroke();
+   c.lineCap='round';c.beginPath();c.moveTo(-8,-6);c.quadraticCurveTo(0,-12,8,-6);c.stroke();
+   c.fillStyle='rgba(255,255,255,.55)';[-1,1].forEach(k=>{c.beginPath();c.ellipse(k*38-9,-4,4,8,.5,0,6.3);c.fill()});
+   if(!real){c.strokeStyle=INK;c.globalCompositeOperation='destination-over';c.lineWidth=16;lens();c.stroke();c.globalCompositeOperation='source-over'}}},
+ roundg:{name:'圓框眼鏡',s:2.3,x:500,y:427,draw(c,real){ // 只有鏡框，看得到眼睛
+   const fr=()=>{c.beginPath();[-1,1].forEach(k=>{c.moveTo(k*38+30,0);c.arc(k*38,0,30,0,6.3)});c.moveTo(-8,-4);c.quadraticCurveTo(0,-11,8,-4);c.moveTo(-68,-6);c.lineTo(-80,-12);c.moveTo(68,-6);c.lineTo(80,-12)};
+   c.lineCap='round';if(!real){c.strokeStyle=INK;c.lineWidth=15;fr();c.stroke()}c.strokeStyle=real?'#8A5A3C':'#B07A4F';c.lineWidth=7;fr();c.stroke()}},
  hat:{name:'派對帽',s:1.6,x:500,y:150,draw(c,real){ // 圓錐派對帽＋條紋＋毛球
    const cone=()=>{c.beginPath();c.moveTo(0,-62);c.quadraticCurveTo(4,-60,56,52);c.quadraticCurveTo(0,64,-56,52);c.quadraticCurveTo(-4,-60,0,-62);c.closePath()};
    c.fillStyle=real?'#4E8A5C':'#3E8A5E';cone();c.fill();
@@ -268,9 +297,39 @@ const DECO={
    c.strokeStyle=real?'#D9545C':'#E2474F';c.lineWidth=20;c.setLineDash([12,14]);p();c.stroke();c.setLineDash([]);
    if(!real){c.lineWidth=4;c.strokeStyle=INK;c.globalCompositeOperation='destination-over';c.lineWidth=28;p();c.stroke();c.globalCompositeOperation='source-over'}}}
 };
-const DKEYS=Object.keys(DECO);
+Object.assign(DECO,{
+ santa:{name:'聖誕帽',s:1.7,x:500,y:140,draw(c,real){
+   const body=()=>{c.beginPath();c.moveTo(-56,36);c.bezierCurveTo(-52,-46,20,-78,70,-16);c.lineTo(52,-6);c.bezierCurveTo(30,-36,0,-20,56,36);c.closePath()};
+   c.fillStyle=real?'#C9434B':'#D8343F';body();c.fill();if(!real){c.strokeStyle=INK;c.lineWidth=7;c.lineJoin='round';body();c.stroke()}
+   const trim=()=>{c.beginPath();c.roundRect(-72,26,144,36,18)};c.fillStyle=real?'#F4EEE4':'#fff';trim();c.fill();if(!real){trim();c.stroke()}
+   c.beginPath();c.arc(64,-14,16,0,6.3);c.fill();if(!real)c.stroke()}},
+ crown:{name:'皇冠',s:1.4,x:500,y:150,draw(c,real){
+   const cr=()=>{c.beginPath();c.moveTo(-62,42);c.lineTo(-66,-26);c.lineTo(-32,4);c.lineTo(0,-46);c.lineTo(32,4);c.lineTo(66,-26);c.lineTo(62,42);c.closePath()};
+   c.fillStyle=real?'#E3BE62':'#F2C94C';cr();c.fill();if(!real){c.strokeStyle=INK;c.lineWidth=7;c.lineJoin='round';cr();c.stroke()}
+   c.fillStyle=real?'#D9545C':'#E2474F';[[-66,-26,9],[0,-46,10],[66,-26,9],[0,20,11]].forEach(([x,y,r])=>{c.beginPath();c.arc(x,y,r,0,6.3);c.fill();if(!real){c.lineWidth=5;c.stroke()}});
+   c.fillStyle=real?'#5E8F5E':'#4FA36B';[-34,34].forEach(x=>{c.beginPath();c.arc(x,22,8,0,6.3);c.fill();if(!real)c.stroke()})}},
+ antler:{name:'麋鹿角',s:2,x:500,y:150,draw(c,real){
+   const br=()=>{c.beginPath();[-1,1].forEach(k=>{c.moveTo(k*22,50);c.quadraticCurveTo(k*30,0,k*58,-48);c.moveTo(k*36,-6);c.lineTo(k*68,-14);c.moveTo(k*46,-28);c.lineTo(k*36,-56)})};
+   c.lineCap=c.lineJoin='round';if(!real){c.strokeStyle=INK;c.lineWidth=28;br();c.stroke()}c.strokeStyle=real?'#9A6A48':'#8A5A3C';c.lineWidth=15;br();c.stroke()}},
+ horn:{name:'派對吹笛',s:1.6,x:620,y:560,r:-.25,draw(c,real){
+   const cone=()=>{c.beginPath();c.moveTo(-64,-7);c.lineTo(34,-24);c.quadraticCurveTo(44,0,34,24);c.lineTo(-64,7);c.closePath()};
+   c.fillStyle=real?'#E3BE62':'#F2C94C';cone();c.fill();c.save();cone();c.clip();c.fillStyle=real?'#D9545C':'#E2474F';[-40,-10,20].forEach(x=>{c.beginPath();c.moveTo(x,-30);c.lineTo(x+12,-30);c.lineTo(x+4,30);c.lineTo(x-8,30);c.fill()});c.restore();
+   if(!real){c.strokeStyle=INK;c.lineWidth=6;c.lineJoin='round';cone();c.stroke()}
+   c.lineCap='round';if(!real){c.strokeStyle=INK;c.lineWidth=12;c.beginPath();c.moveTo(-76,0);c.lineTo(-62,0);c.stroke()}
+   c.strokeStyle=real?'#5E8F5E':'#4FA36B';c.lineWidth=6;c.beginPath();c.moveTo(-76,0);c.lineTo(-62,0);c.stroke()}},
+ gift:{name:'禮物',s:1,x:500,y:200,draw(c,real){
+   const box=()=>{c.beginPath();c.roundRect(-42,-22,84,64,8)};c.fillStyle=real?'#C9434B':'#D8343F';box();c.fill();if(!real){c.strokeStyle=INK;c.lineWidth=7;box();c.stroke()}
+   c.fillStyle=real?'#5E8F5E':'#3E8A5E';c.fillRect(-9,-22,18,64);c.fillRect(-42,-2,84,14);
+   [-1,1].forEach(k=>{c.beginPath();c.ellipse(k*20,-34,20,12,k*.4,0,6.3);c.fill();if(!real){c.lineWidth=5;c.stroke()}})}},
+ balloon:{name:'氣球',s:1.3,x:780,y:160,draw(c,real){
+   c.strokeStyle=real?'#D9CFC2':INK;c.lineWidth=4;c.beginPath();c.moveTo(0,20);c.quadraticCurveTo(14,44,-4,66);c.stroke();
+   const b=()=>{c.beginPath();c.ellipse(0,-20,34,42,0,0,6.3)};c.fillStyle=real?'#4A6E9A':'#5B8FD0';b();c.fill();if(!real){c.strokeStyle=INK;c.lineWidth=7;b();c.stroke()}
+   c.beginPath();c.moveTo(-7,26);c.lineTo(7,26);c.lineTo(0,18);c.fill();c.fillStyle='rgba(255,255,255,.6)';c.beginPath();c.ellipse(-13,-36,7,13,.4,0,6.3);c.fill()}}
+});
+const DKEYS=['shades','heartg','starg','roundg','hat','santa','crown','antler','horn','gift','balloon','star','bow','holly','cane'];
 const HAP='<label class="hap"><input type="checkbox" switch tabindex="-1" aria-hidden="true"></label>';
-const addHap=el=>el.insertAdjacentHTML('beforeend',HAP);
+const addHap=el=>{el.insertAdjacentHTML('beforeend',HAP); // 震動開關會讓一次點擊觸發兩次 → 80ms 內只算一次（分享才不會出兩張）
+  el.addEventListener('click',e=>{const t=performance.now();if(t-(el._t||0)<80){e.stopImmediatePropagation();return}el._t=t},true)};
 
 // ---------- UI ----------
 const $=id=>document.getElementById(id);
@@ -279,9 +338,9 @@ COLORS.forEach(([n,h],i)=>{const d=document.createElement('div');d.className='sw
 SIZES.forEach((s,i)=>{const d=document.createElement('div');d.className='sz'+(i==1?' on':'');d.innerHTML=`<i style="width:${s/3+3}px;height:${s/3+3}px"></i>`;
   d.onclick=()=>{SFX.tap();size=s;document.querySelectorAll('.sz').forEach(x=>x.classList.remove('on'));d.classList.add('on')};addHap(d);$('sizes').appendChild(d)});
 DKEYS.forEach(k=>{const d=document.createElement('div');d.className='deco';d.title=DECO[k].name;const c=mk(120);const g=c.getContext('2d');g.translate(60,60);g.scale(.8,.8);DECO[k].draw(g,false);d.appendChild(c);
-  d.onclick=()=>{if(mode!='draw')return;SFX.pop();buzz();const D=DECO[k];decos.push({k,x:D.x||500,y:D.y||200,s:D.s||1,r:0});sel=decos.length-1;render()};addHap(d);$('decos').appendChild(d)});
-['dot','smile'].forEach((k,i)=>{const d=document.createElement('div');d.className='deco'+(i?'':' on');d.title=i?'笑瞇瞇':'圓眼睛';
-  const c=mk(120);c.getContext('2d').drawImage(BASES[k],OX+260*SC,OY+190*SC,480*SC,300*SC,0,22,120,75);d.appendChild(c);
+  d.onclick=()=>{if(mode!='draw')return;SFX.pop();buzz();const D=DECO[k];decos.push({k,x:D.x||500,y:D.y||200,s:D.s||1,r:D.r||0});sel=decos.length-1;render()};addHap(d);$('decos').appendChild(d)});
+EYES.forEach(([k,nm],i)=>{const d=document.createElement('div');d.className='deco'+(i?'':' on');d.title=nm;
+  const c=mk(120),q=c.getContext('2d');q.fillStyle='#F9CBAE';q.beginPath();q.arc(60,60,58,0,7);q.fill();q.save();q.translate(60,62);q.scale(.52,.52);q.translate(-500,-326);drawEyes(q,k);q.restore();d.appendChild(c);
   d.onclick=()=>{if(mode!='draw')return;SFX.tap();buzz();eyes=k;document.querySelectorAll('#eyes .deco').forEach(x=>x.classList.remove('on'));d.classList.add('on');render()};addHap(d);$('eyes').appendChild(d)});
 $('bErase').onclick=()=>{SFX.tap();erasing=!erasing;$('bErase').classList.toggle('on',erasing)};
 $('bUndo').onclick=()=>{SFX.tap(); if(lastOps.length){const o=lastOps.pop();if(o=='s')strokes.pop();else decos.pop();render()} };
@@ -305,7 +364,7 @@ function outlined(){ // 手繪模式：客人的頭髮也加粗黑外框，跟�
   for(let k=0;k<20;k++){const a=k/20*6.283;hoctx.drawImage(hair,Math.cos(a)*14,Math.sin(a)*14)}
   hoctx.globalCompositeOperation='source-in';hoctx.fillStyle=INK;hoctx.fillRect(0,0,W,W);
   hoctx.globalCompositeOperation='source-over';hoctx.drawImage(hair,0,0);return hairOut}
-function render(){if(mode!='draw')return;paintHair();ctx.clearRect(0,0,W,W);ctx.drawImage(BASES[eyes],0,0);ctx.drawImage(outlined(),0,0);drawDecos(ctx,false)}
+function render(){if(mode!='draw')return;paintHair();ctx.clearRect(0,0,W,W);ctx.drawImage(getBase(eyes),0,0);ctx.drawImage(outlined(),0,0);drawDecos(ctx,false)}
 
 const pos=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*W]};
 const ptrs=new Map();let cur=null,drag=null,pinch=null,knob=null;
@@ -367,13 +426,16 @@ function composeReal(){
   const out=mk(W),g=out.getContext('2d');
   g.fillStyle=CARD;g.fillRect(0,0,W,W);
   g.drawImage(photo,OX,OY,W*SC,W*SC);
-  if(eyes=='smile'){ // 照片的巧克力圓眼 → 用上方的粉色麵團蓋掉，再擠笑瞇瞇眼
-    const P=(x,y)=>[OX+x*SC,OY+y*SC];
-    [[407,334],[593,334]].forEach(([x,y])=>{const [cx,cy]=P(x,y),r=19*SC,dy=34*SC;const t=mk(W),q=t.getContext('2d');
-      q.drawImage(photo,OX,OY-(-dy),W*SC,W*SC);q.globalCompositeOperation='destination-in';const gr=q.createRadialGradient(cx,cy,r*.6,cx,cy,r);gr.addColorStop(0,'#000');gr.addColorStop(1,'rgba(0,0,0,0)');q.fillStyle=gr;q.fillRect(cx-r,cy-r,2*r,2*r);g.drawImage(t,0,0)});
-    const el=mk(W),e=el.getContext('2d');e.strokeStyle='#3E2326';e.lineWidth=12*SC;e.lineCap='round';
-    [[407,348],[593,348]].forEach(([x,y])=>{const [cx,cy]=P(x,y);e.beginPath();e.arc(cx,cy,22*SC,Math.PI+.3,-.3);e.stroke()});
-    const er=realize(el,{h:4,flat:.8,amp:.4,gloss:.25,grain:6,bake:0});g.globalAlpha=.4;g.drawImage(shadowOf(er.A,2,4,3,.8),0,0);g.globalAlpha=1;g.drawImage(er.c,0,0)}
+  if(eyes!='dot'){ // 照片的巧克力圓眼 → 用旁邊的粉色麵團蓋掉，再擠新的眼睛
+    const P=(x,y)=>[OX+x*SC,OY+y*SC],EL=[407,334],ER=[593,334];
+    (eyes=='wink'?[ER]:[EL,ER]).forEach(([x,y])=>{const [cx,cy]=P(x,y),r=27*SC,dx=(x<500?50:-50)*SC;const t=mk(W),q=t.getContext('2d');
+      q.drawImage(photo,OX+dx,OY,W*SC,W*SC);q.globalCompositeOperation='destination-in';const gr=q.createRadialGradient(cx,cy,r*.72,cx,cy,r);gr.addColorStop(0,'#000');gr.addColorStop(1,'rgba(0,0,0,0)');q.fillStyle=gr;q.fillRect(cx-r,cy-r,2*r,2*r);g.drawImage(t,0,0)});
+    const el=mk(W),e=el.getContext('2d');e.lineCap=e.lineJoin='round';e.strokeStyle='#3E2326';e.lineWidth=12*SC;
+    const arc=([x,y],up)=>{const [cx,cy]=P(x,y);e.beginPath();up?e.arc(cx,cy+12*SC,21*SC,Math.PI+.3,-.3):e.arc(cx,cy-6*SC,19*SC,.4,Math.PI-.4);e.stroke()};
+    if(eyes=='smile'){arc(EL,1);arc(ER,1)}else if(eyes=='wink')arc(ER,1);else if(eyes=='sleep'){arc(EL,0);arc(ER,0)}
+    else if(eyes=='star')[EL,ER].forEach(([x,y])=>{const [cx,cy]=P(x,y);starPath(e,cx,cy+3*SC,27*SC,12*SC);e.fillStyle='#E3BE62';e.fill()});
+    else if(eyes=='heart')[EL,ER].forEach(([x,y])=>{const [cx,cy]=P(x,y);heartPath(e,cx,cy+4*SC,21*SC);e.fillStyle='#D9545C';e.fill()});
+    const er=realize(el,{h:4,flat:.82,amp:.4,gloss:.3,grain:6,bake:0});g.globalAlpha=.4;g.drawImage(shadowOf(er.A,2,4,3,.8),0,0);g.globalAlpha=1;g.drawImage(er.c,0,0)}
   g.globalAlpha=.4;g.drawImage(shadowOf(h.A,5,9,10,.8),0,0);g.drawImage(shadowOf(dd.A,6,10,6,.9),0,0);g.globalAlpha=1;
   g.drawImage(h.c,0,0);g.drawImage(dd.c,0,0);
   return out}
@@ -441,7 +503,7 @@ $('bShop').addEventListener('click',()=>{SFX.tap();track('santa_shop_click',{sco
 // 拍立得分享圖：1080×1350（IG 貼文比例），圖上印網址，只傳圖片也找得到遊戲
 async function makeCard(){
   const F='"Zen Maru Gothic","Noto Sans TC",sans-serif';
-  try{await Promise.all(['900 60px','700 30px'].map(w=>document.fonts.load(w+' "Zen Maru Gothic"','我的派對老公公分一起來裝扮聖誕快樂0123456789beafoo.com/pages/santa-hair chubby doo')))}catch(e){}
+  try{await Promise.all(['900 60px','700 30px'].map(w=>document.fonts.load(w+' "Zen Maru Gothic"','我的派對老公公分一起來裝扮聖誕快樂0123456789beafoo.com/pages/santa-party chubby doo')))}catch(e){}
   const CW=1080,CHh=1350,k=mk(CW,CHh),g=k.getContext('2d');
   g.fillStyle=CARD;g.fillRect(0,0,CW,CHh);
   const r=rnd(11);for(let i=0;i<140;i++){g.fillStyle='rgba(255,255,255,'+(.25+r()*.5)+')';g.beginPath();g.arc(r()*CW,r()*CHh,1.5+r()*3.5,0,7);g.fill()}
@@ -457,12 +519,13 @@ async function makeCard(){
   g.rotate(.05);g.fillStyle='rgba(226,184,78,.82)';g.fillRect(-90,-PH/2-26,180,52);g.restore();
   // 下方：連結
   g.textAlign='center';g.fillStyle='#FBF3E4';g.font='900 46px '+F;g.fillText('一起來裝扮老公公 ✦',CW/2,1210);
-  g.font='700 34px '+F;g.fillStyle='#F2D79A';g.fillText('beafoo.com/pages/santa-hair',CW/2,1266);
+  g.font='700 34px '+F;g.fillStyle='#F2D79A';g.fillText('beafoo.com/pages/santa-party',CW/2,1266);
   g.font='700 26px '+F;g.fillStyle='rgba(251,243,228,.7)';g.fillText('chubby doo',CW/2,1314);
   return k}
 window.__card=makeCard;window.__desel=()=>{sel=-1;render()};
+let sharing=false;
 $('bShare').onclick=async()=>{ // 分享拍立得圖＋連結（手機叫出分享選單，電腦直接下載）
-  SFX.tap();track('santa_share',{score:lastScore});
+  if(sharing)return;sharing=true;setTimeout(()=>sharing=false,1500);SFX.tap();track('santa_share',{score:lastScore});
   const url=PAGE+'?utm_source=friend_share&utm_medium=social&utm_campaign='+CAMP;
   const k=await makeCard();
   k.toBlob(async b=>{const f=new File([b],'chubbydoo-santa.png',{type:'image/png'});
