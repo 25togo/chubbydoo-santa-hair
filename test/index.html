@@ -63,7 +63,7 @@ h1{margin:6px 0 4px;font-family:"Zen Maru Gothic","Noto Sans TC",sans-serif;font
 <header>
  <div id="snd" role="button" tabindex="0" aria-pressed="true"><span id="sndt">音效 開</span></div>
  <h1 id="ttl">快畫頭髮！老公公好冷</h1>
- <p class="sub" id="sub">替他畫上頭髮、戴上小髮夾</p>
+ <p class="sub" id="sub">看看能得幾分？九十分以上有小禮物</p>
 </header>
 <div class="stage" id="stage">
  <canvas id="cv" width="1000" height="1000"></canvas>
@@ -368,7 +368,7 @@ function scoreIt(){
   return{s,msg}}
 
 $('bDone').onclick=async()=>{
-  if(!strokes.length){const sb=$('sub');sb.textContent='老公公還沒有頭髮！先畫幾筆';sb.style.color='#B3262E';setTimeout(()=>{sb.textContent='替他畫上頭髮、戴上小髮夾';sb.style.color=''},2200);return}
+  if(!strokes.length){const sb=$('sub');sb.textContent='老公公還沒有頭髮！先畫幾筆';sb.style.color='#B3262E';setTimeout(()=>{sb.textContent='看看能得幾分？九十分以上有小禮物';sb.style.color=''},2200);return}
   if(mode!='draw')return;
   sel=-1;render();const res=scoreIt();track('santa_done',{score:res.s});
   await (photo.complete?0:new Promise(r=>photo.onload=r));
