@@ -140,7 +140,7 @@ const SFX={
   win(){const c=actx();if(!c)return;const t=c.currentTime;[[1047,0],[1319,.12],[1568,.24],[2093,.4]].forEach(([f,d])=>bell(c,t+d,f,.16,1.3))}
 };
 function buzz(p){try{if(navigator.vibrate)navigator.vibrate(p||15)}catch(e){}}
-const COLORS=[['白','#FFFDF7'],['灰','#B9B4AE'],['金','#E2B84E'],['粉','#F4A6B8'],['棕','#8A5A3C'],['黑','#3A2A26'],['紅','#D8343F'],['綠','#3E8A5E']];
+const COLORS=[['白','#FFF3DC'],['灰','#B9B4AE'],['金','#E2B84E'],['粉','#F4A6B8'],['棕','#8A5A3C'],['黑','#3A2A26'],['紅','#D8343F'],['綠','#3E8A5E']];
 const SIZES=[14,26,42];
 let color=COLORS[0][1],size=SIZES[1],erasing=false,mode='draw';
 const strokes=[];   // {c,w,erase,pts:[]}
