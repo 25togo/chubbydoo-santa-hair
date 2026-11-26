@@ -168,7 +168,7 @@ function smoothPts(P,it=2){let p=P;for(let k=0;k<it;k++){const o=[];for(let i=0;
 const INK='#1A1210';
 const CARD='#1F4A3A';
 // 餅乾縮小擺在下方，上面留空間畫頭髮（手繪／照片／算分都用同一組）
-const SC=1,OX=500-500*SC,OY=0;
+const SC=.84,OX=500-500*SC,OY=Math.round(955*(1-SC)); // 整體等比縮小、底部位置不變，上方留更多畫頭髮的空間
 const base=mk(W);
 (function drawBase(){
   const c=base.getContext('2d');c.lineJoin='round';c.lineCap='round';
