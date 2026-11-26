@@ -552,20 +552,25 @@ $('bShop').addEventListener('click',()=>{SFX.tap();track('santa_shop_click',{sco
     $('bShop').firstChild.textContent='折扣碼已複製 ✓';setTimeout(()=>{$('bShop').firstChild.textContent='帶老公公回家 ♡'},2500);setTimeout(goProducts,600)}
   else $('bAgain').click()}); // 沒到 90 分：鼓勵再畫一次
 // 拍立得分享圖：1080×1350（IG 貼文比例），圖上印網址，只傳圖片也找得到遊戲
+// 拍立得下方的一句話：看老公公戴了什麼來決定（同類有多個就隨機挑）
+const CAPS={shades:'今天的派對我最酷',heartg:'派對上遇見真愛了',starg:'今天我就是巨星',roundg:'其實我是學霸老公公',hat:'派對要開始了！',santa:'聖誕帽才是本命',
+  crown:'派對之王駕到',antler:'今天兼職當麋鹿',horn:'叭叭！派對開始',gift:'禮物我自己帶來了',balloon:'氣球比我還開心',
+  e_star:'眼睛裡有星星',e_heart:'看到千層酥就心動',e_sleep:'派對太久了好想睡',e_wink:'對大家放電中',e_smile:'笑到眼睛不見了',hair:'新髮型很潮對不對',none:'準備好開派對了'};
+function captionOf(){const ks=[...new Set(decos.map(d=>d.k))].filter(k=>CAPS[k]);if(eyes!='dot')ks.push('e_'+eyes);
+  if(!ks.length)ks.push(strokes.length?'hair':'none');return CAPS[ks[Math.floor(Math.random()*ks.length)]]}
+captionOf.all=Object.values(CAPS).join('');
 async function makeCard(){
   const F='"Zen Maru Gothic","Noto Sans TC",sans-serif';
-  try{await Promise.all(['900 60px','700 30px'].map(w=>document.fonts.load(w+' "Zen Maru Gothic"','我的派對老公公分一起來裝扮聖誕快樂0123456789beafoo.com/pages/santa-party chubby doo')))}catch(e){}
+  try{await Promise.all(['900 60px','700 30px'].map(w=>document.fonts.load(w+' "Zen Maru Gothic"',captionOf.all+'一起來裝扮老公公beafoo.com/pages/santa-party chubby doo')))}catch(e){}
+  const caption=captionOf();
   const CW=1080,CHh=1350,k=mk(CW,CHh),g=k.getContext('2d');
   g.fillStyle=CARD;g.fillRect(0,0,CW,CHh);
   const r=rnd(11);for(let i=0;i<140;i++){g.fillStyle='rgba(255,255,255,'+(.25+r()*.5)+')';g.beginPath();g.arc(r()*CW,r()*CHh,1.5+r()*3.5,0,7);g.fill()}
-  g.textAlign='center';g.fillStyle='#FBF3E4';g.font='900 64px '+F;g.fillText('裝扮老公公參加派對',CW/2,118);
   // 拍立得
   g.save();g.translate(CW/2,640);g.rotate(-.035);
   const PW=800,PH=930,ph=720;g.shadowColor='rgba(0,0,0,.35)';g.shadowBlur=40;g.shadowOffsetY=16;g.fillStyle='#FFFDF8';g.fillRect(-PW/2,-PH/2,PW,PH);g.shadowColor='transparent';
   g.drawImage(shot||cv,-ph/2,-PH/2+40,ph,ph);g.strokeStyle='rgba(0,0,0,.06)';g.lineWidth=2;g.strokeRect(-ph/2,-PH/2+40,ph,ph);
-  g.fillStyle='#5A3424';g.textAlign='left';g.font='900 52px '+F;g.fillText('我的派對老公公',-ph/2+6,PH/2-70);
-  g.textAlign='right';g.fillStyle='#B3262E';g.font='900 92px '+F;const sw=g.measureText(String(lastScore)).width;g.fillText(String(lastScore),ph/2-46,PH/2-58);
-  g.font='900 40px '+F;g.fillText('分',ph/2-2,PH/2-60);
+  g.fillStyle='#5A3424';g.textAlign='center';g.font='900 56px '+F;g.fillText(caption,0,PH/2-72);
   // 膠帶
   g.rotate(.05);g.fillStyle='rgba(226,184,78,.82)';g.fillRect(-90,-PH/2-26,180,52);g.restore();
   // 下方：連結
