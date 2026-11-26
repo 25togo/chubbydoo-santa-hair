@@ -32,6 +32,7 @@ h1{margin:6px 0 4px;font-family:"Zen Maru Gothic","Noto Sans TC",sans-serif;font
 .btn{border:1.5px solid var(--line);background:#fff;border-radius:16px;padding:6px 11px;font:700 13px "Zen Maru Gothic",sans-serif;color:var(--ink);cursor:pointer}
 .btn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .deco{width:44px;height:44px;border-radius:12px;background:#fff;border:1.5px solid var(--line);cursor:pointer;padding:3px;flex:none}
+.deco.on{border-color:#C9A24A;box-shadow:0 0 0 2px #E2B84E}
 .deco canvas{width:100%;height:100%;display:block}
 .cta{display:block;box-sizing:border-box;width:100%;margin-top:14px;padding:14px;border:0;border-radius:30px;background:var(--red);color:#fff;
  font:900 19px "Noto Sans TC",sans-serif;letter-spacing:.1em;box-shadow:0 4px 0 var(--red2);cursor:pointer}
@@ -62,8 +63,8 @@ h1{margin:6px 0 4px;font-family:"Zen Maru Gothic","Noto Sans TC",sans-serif;font
 <div id="app">
 <header>
  <div id="snd" role="button" tabindex="0" aria-pressed="true"><span id="sndt">音效 開</span></div>
- <h1 id="ttl">快畫頭髮！老公公好冷</h1>
- <p class="sub" id="sub">看看能得幾分？九十分以上有小禮物</p>
+ <h1 id="ttl">裝扮老公公參加派對</h1>
+ <p class="sub" id="sub">看看能得幾分？90 分以上有小禮物</p>
 </header>
 <div class="stage" id="stage">
  <canvas id="cv" width="1000" height="1000"></canvas>
@@ -77,6 +78,7 @@ h1{margin:6px 0 4px;font-family:"Zen Maru Gothic","Noto Sans TC",sans-serif;font
    <span style="flex:1"></span>
    <button class="btn" id="bErase">橡皮擦</button><button class="btn" id="bUndo">復原</button></div>
   <div class="row"><span class="lab">裝飾</span><div class="row" id="decos" style="gap:6px"></div></div>
+  <div class="row"><span class="lab">眼睛</span><div class="row" id="eyes" style="gap:6px"></div></div>
  </div>
  <button class="cta" id="bDone">畫好了！變身 ✦</button>
  <div class="tip">裝飾點一下放上去，按住移動；拉右下角圓鈕可縮放、旋轉</div>
@@ -169,8 +171,7 @@ const INK='#1A1210';
 const CARD='#1F4A3A';
 // 餅乾縮小擺在下方，上面留空間畫頭髮（手繪／照片／算分都用同一組）
 const SC=.84,OX=500-500*SC,OY=Math.round(955*(1-SC)); // 整體等比縮小、底部位置不變，上方留更多畫頭髮的空間
-const base=mk(W);
-(function drawBase(){
+function drawBase(base,eyes){
   const c=base.getContext('2d');c.lineJoin='round';c.lineCap='round';
   // 紅色卡片底＋顆粒
   c.fillStyle=CARD;c.fillRect(0,0,W,W);
@@ -217,12 +218,13 @@ const base=mk(W);
   // 眉毛：兩朵小雲
   part('#FFF3DC',13,g=>{[[318,248,40],[365,228,42],[412,246,36]].forEach(([x,y,r])=>circ(g,x,y,r));[[682,248,40],[635,228,42],[588,246,36]].forEach(([x,y,r])=>circ(g,x,y,r))});
   // 眼睛
-  [[402,326],[598,326]].forEach(([x,y])=>{c.fillStyle=INK;circ(c,x,y,26,30);c.fillStyle='#fff';circ(c,x-8,y-10,9);circ(c,x+9,y+11,4)});
+  if(eyes=='smile'){c.strokeStyle=INK;c.lineWidth=15;c.lineCap='round';[[402,338],[598,338]].forEach(([x,y])=>{c.beginPath();c.arc(x,y,27,Math.PI+.25,-.25);c.stroke()})} // 笑瞇瞇
+  else [[402,326],[598,326]].forEach(([x,y])=>{c.fillStyle=INK;circ(c,x,y,26,30);c.fillStyle='#fff';circ(c,x-8,y-10,9);circ(c,x+9,y+11,4)});
   // 鼻子
   part('#E2404A',14,g=>circ(g,492,412,92,70));
   c.fillStyle='#FFD9CF';c.beginPath();c.ellipse(455,385,30,13,-.25,0,6.3);c.fill();
-  c.restore();
-})();
+  c.restore();return base}
+const BASES={dot:drawBase(mk(W),'dot'),smile:drawBase(mk(W),'smile')};let eyes='dot';
 
 // ---------- 頭頂目標區（算分用）----------
 const target=(()=>{const m=mk(W);const c=m.getContext('2d');c.setTransform(SC,0,0,SC,OX,OY);c.fillStyle='#000';c.beginPath();S.pink.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.fill();
@@ -235,6 +237,22 @@ const face=(()=>{const m=mk(W);const c=m.getContext('2d');c.setTransform(SC,0,0,
 
 // ---------- 裝飾 ----------
 const DECO={
+ shades:{name:'墨鏡',s:2.3,x:500,y:427,draw(c,real){ // 派對墨鏡：紅框＋深色鏡片
+   const lens=()=>{c.beginPath();[-1,1].forEach(k=>{c.moveTo(k*36+34,-14);c.roundRect(k*36-32,-24,64,46,[14,14,22,22])})};
+   c.fillStyle=real?'#3B2326':'#2B2B33';lens();c.fill();
+   c.lineWidth=9;c.strokeStyle=real?'#C9434B':'#E2474F';c.lineJoin='round';lens();c.stroke();
+   c.beginPath();c.moveTo(-6,-10);c.quadraticCurveTo(0,-17,6,-10);c.stroke(); // 鼻樑
+   c.lineCap='round';c.beginPath();c.moveTo(-68,-18);c.lineTo(-76,-24);c.moveTo(68,-18);c.lineTo(76,-24);c.stroke();
+   c.fillStyle='rgba(255,255,255,.55)';[-1,1].forEach(k=>{c.beginPath();c.ellipse(k*36-14,-10,6,11,.5,0,6.3);c.fill()});
+   if(!real){c.strokeStyle=INK;c.lineWidth=4;c.globalCompositeOperation='destination-over';c.lineWidth=17;lens();c.stroke();c.globalCompositeOperation='source-over'}}},
+ hat:{name:'派對帽',s:1.6,x:500,y:150,draw(c,real){ // 圓錐派對帽＋條紋＋毛球
+   const cone=()=>{c.beginPath();c.moveTo(0,-62);c.quadraticCurveTo(4,-60,56,52);c.quadraticCurveTo(0,64,-56,52);c.quadraticCurveTo(-4,-60,0,-62);c.closePath()};
+   c.fillStyle=real?'#4E8A5C':'#3E8A5E';cone();c.fill();
+   c.save();cone();c.clip();c.fillStyle=real?'#E3BE62':'#F2C94C';
+   [[-30,0],[-2,28],[-12,-26],[24,-2],[18,42],[-34,40]].forEach(([x,y])=>{c.beginPath();c.arc(x,y,7,0,6.3);c.fill()});
+   c.fillStyle=real?'#D9545C':'#E2474F';c.beginPath();c.moveTo(-60,40);c.quadraticCurveTo(0,54,60,40);c.lineTo(60,66);c.quadraticCurveTo(0,76,-60,66);c.fill();c.restore();
+   if(!real){c.strokeStyle=INK;c.lineWidth=7;c.lineJoin='round';cone();c.stroke()}
+   c.fillStyle=real?'#F4EEE4':'#fff';c.beginPath();c.arc(0,-64,17,0,6.3);c.fill();if(!real){c.strokeStyle=INK;c.lineWidth=6;c.stroke()}}},
  star:{name:'星星夾',draw(c,real){ // 金星＋夾子
    c.fillStyle=real?'#E3BE62':'#F2C94C';c.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?22:50;c.lineTo(Math.cos(a)*r,Math.sin(a)*r)}c.closePath();c.fill();
    if(!real){c.strokeStyle=INK;c.lineWidth=7;c.lineJoin='round';c.stroke()}
@@ -242,13 +260,9 @@ const DECO={
  bow:{name:'蝴蝶結',draw(c,real){c.fillStyle=real?'#D9545C':'#E2474F';
    [[-1],[1]].forEach(([s])=>{c.beginPath();c.moveTo(0,0);c.bezierCurveTo(s*30,-50,s*75,-35,s*62,0);c.bezierCurveTo(s*75,35,s*30,50,0,0);c.fill();if(!real){c.strokeStyle=INK;c.lineWidth=7;c.stroke()}});
    c.beginPath();c.arc(0,0,15,0,6.3);c.fill();if(!real)c.stroke()}},
- bell:{name:'鈴鐺',draw(c,real){c.fillStyle=real?'#E3BE62':'#F2C94C';c.beginPath();c.moveTo(-40,30);c.quadraticCurveTo(-38,-40,0,-45);c.quadraticCurveTo(38,-40,40,30);c.closePath();c.fill();
-   if(!real){c.strokeStyle=INK;c.lineWidth=7;c.stroke()}c.fillStyle='#8A5A3C';c.beginPath();c.arc(0,34,9,0,6.3);c.fill()}},
  holly:{name:'冬青',draw(c,real){c.fillStyle=real?'#5E8F5E':'#4FA36B';
    [-1,1].forEach(s=>{c.save();c.rotate(s*.5);c.beginPath();c.ellipse(s*38,0,40,17,0,0,6.3);c.fill();if(!real){c.strokeStyle=INK;c.lineWidth=7;c.stroke()}c.restore()});
    c.fillStyle=real?'#D9545C':'#E2474F';[[-10,-8],[10,-8],[0,10]].forEach(([x,y])=>{c.beginPath();c.arc(x,y,13,0,6.3);c.fill();if(!real){c.strokeStyle=INK;c.lineWidth=6;c.stroke()}})}},
- flake:{name:'雪花',draw(c,real){c.strokeStyle=real?'#F4EEE4':'#9CC6E6';c.lineWidth=11;c.lineCap='round';
-   for(let i=0;i<6;i++){c.save();c.rotate(i*Math.PI/3);c.beginPath();c.moveTo(0,0);c.lineTo(0,-48);c.moveTo(0,-30);c.lineTo(-13,-42);c.moveTo(0,-30);c.lineTo(13,-42);c.stroke();c.restore()}}},
  cane:{name:'拐杖糖',draw(c,real){c.lineCap='round';c.lineWidth=20;c.strokeStyle='#fff';
    const p=()=>{c.beginPath();c.moveTo(10,55);c.lineTo(10,-20);c.arc(-12,-20,22,0,Math.PI,true)};p();c.stroke();
    c.strokeStyle=real?'#D9545C':'#E2474F';c.lineWidth=20;c.setLineDash([12,14]);p();c.stroke();c.setLineDash([]);
@@ -265,7 +279,10 @@ COLORS.forEach(([n,h],i)=>{const d=document.createElement('div');d.className='sw
 SIZES.forEach((s,i)=>{const d=document.createElement('div');d.className='sz'+(i==1?' on':'');d.innerHTML=`<i style="width:${s/3+3}px;height:${s/3+3}px"></i>`;
   d.onclick=()=>{SFX.tap();size=s;document.querySelectorAll('.sz').forEach(x=>x.classList.remove('on'));d.classList.add('on')};addHap(d);$('sizes').appendChild(d)});
 DKEYS.forEach(k=>{const d=document.createElement('div');d.className='deco';d.title=DECO[k].name;const c=mk(120);const g=c.getContext('2d');g.translate(60,60);g.scale(.8,.8);DECO[k].draw(g,false);d.appendChild(c);
-  d.onclick=()=>{if(mode!='draw')return;SFX.pop();buzz();decos.push({k,x:500,y:200,s:1,r:0});sel=decos.length-1;render()};addHap(d);$('decos').appendChild(d)});
+  d.onclick=()=>{if(mode!='draw')return;SFX.pop();buzz();const D=DECO[k];decos.push({k,x:D.x||500,y:D.y||200,s:D.s||1,r:0});sel=decos.length-1;render()};addHap(d);$('decos').appendChild(d)});
+['dot','smile'].forEach((k,i)=>{const d=document.createElement('div');d.className='deco'+(i?'':' on');d.title=i?'笑瞇瞇':'圓眼睛';
+  const c=mk(120);c.getContext('2d').drawImage(BASES[k],OX+350*SC,OY+272*SC,300*SC,96*SC,0,40,120,38);d.appendChild(c);
+  d.onclick=()=>{if(mode!='draw')return;SFX.tap();buzz();eyes=k;document.querySelectorAll('#eyes .deco').forEach(x=>x.classList.remove('on'));d.classList.add('on');render()};addHap(d);$('eyes').appendChild(d)});
 $('bErase').onclick=()=>{SFX.tap();erasing=!erasing;$('bErase').classList.toggle('on',erasing)};
 $('bUndo').onclick=()=>{SFX.tap(); if(lastOps.length){const o=lastOps.pop();if(o=='s')strokes.pop();else decos.pop();render()} };
 const lastOps=[];
@@ -288,7 +305,7 @@ function outlined(){ // 手繪模式：客人的頭髮也加粗黑外框，跟�
   for(let k=0;k<20;k++){const a=k/20*6.283;hoctx.drawImage(hair,Math.cos(a)*14,Math.sin(a)*14)}
   hoctx.globalCompositeOperation='source-in';hoctx.fillStyle=INK;hoctx.fillRect(0,0,W,W);
   hoctx.globalCompositeOperation='source-over';hoctx.drawImage(hair,0,0);return hairOut}
-function render(){if(mode!='draw')return;paintHair();ctx.clearRect(0,0,W,W);ctx.drawImage(base,0,0);ctx.drawImage(outlined(),0,0);drawDecos(ctx,false)}
+function render(){if(mode!='draw')return;paintHair();ctx.clearRect(0,0,W,W);ctx.drawImage(BASES[eyes],0,0);ctx.drawImage(outlined(),0,0);drawDecos(ctx,false)}
 
 const pos=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*W]};
 const ptrs=new Map();let cur=null,drag=null,pinch=null,knob=null;
@@ -300,8 +317,8 @@ cv.addEventListener('pointerdown',e=>{if(mode!='draw')return;cv.setPointerCaptur
   if(!strokes.length&&!started){started=true;track('santa_start')}
   sel=-1;cur={c:color,w:size*(erasing?1.6:1),erase:erasing,pts:[p]};strokes.push(cur);lastOps.push('s');render()});
 cv.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;const p=pos(e);ptrs.set(e.pointerId,p);
-  if(pinch&&ptrs.size==2){const [a,b]=[...ptrs.values()];const d=decos[sel];d.s=Math.max(.4,Math.min(2.5,pinch.s*Math.hypot(a[0]-b[0],a[1]-b[1])/pinch.d0));d.r=pinch.r+Math.atan2(b[1]-a[1],b[0]-a[0])-pinch.a0;render();return}
-  if(knob){const d=decos[sel];d.s=Math.max(.4,Math.min(2.5,knob.s*Math.hypot(p[0]-d.x,p[1]-d.y)/knob.d0));d.r=knob.r+Math.atan2(p[1]-d.y,p[0]-d.x)-knob.a0;render();return}
+  if(pinch&&ptrs.size==2){const [a,b]=[...ptrs.values()];const d=decos[sel];d.s=Math.max(.4,Math.min(4,pinch.s*Math.hypot(a[0]-b[0],a[1]-b[1])/pinch.d0));d.r=pinch.r+Math.atan2(b[1]-a[1],b[0]-a[0])-pinch.a0;render();return}
+  if(knob){const d=decos[sel];d.s=Math.max(.4,Math.min(4,knob.s*Math.hypot(p[0]-d.x,p[1]-d.y)/knob.d0));d.r=knob.r+Math.atan2(p[1]-d.y,p[0]-d.x)-knob.a0;render();return}
   if(drag){const d=decos[sel];d.x=p[0]-drag.dx;d.y=p[1]-drag.dy;render();return}
   if(cur){cur.pts.push(p);render()}});
 const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(!ptrs.size){cur=null;drag=null;knob=null}};
@@ -332,7 +349,7 @@ function realize(layer,opt){ // 把平面色塊變成有厚度的麵團/糖片
     const nx=-dx*7,ny=-dy*7,nz=1,nl=Math.hypot(nx,ny,nz);const L=(nx*-.5+ny*-.65+nz*.58)/nl; // 光從左上
     const sh=(opt.flat||.8)+(opt.amp||.32)*L; const rim=Math.min(1,H[i]*2.2); // 邊緣略深（烤色）
     let R,G,B;if(px[i*4+3]>200){R=px[i*4];G=px[i*4+1];B=px[i*4+2]}else{const w=Math.max(soft[i],1e-4);R=CH[0][i]/w;G=CH[1][i]/w;B=CH[2][i]/w}
-    if(opt.dough){const w2=Math.max(soft[i],1e-4),sr=CH[0][i]/w2,sg=CH[1][i]/w2,sb=CH[2][i]/w2;const sat=Math.max(sr,sg,sb)-Math.min(sr,sg,sb); // 用周圍平均色判斷，紅綠交界不會誤判成白色const k=sat<40?.8:opt.dough*.5;R=R*(1-k)+DOUGH[0]*k;G=G*(1-k)+DOUGH[1]*k;B=B*(1-k)+DOUGH[2]*k;
+    if(opt.dough){const w2=Math.max(soft[i],1e-4),sr=CH[0][i]/w2,sg=CH[1][i]/w2,sb=CH[2][i]/w2;const sat=Math.max(sr,sg,sb)-Math.min(sr,sg,sb); // 用周圍平均色判斷，紅綠交界不會誤判成白色const k=opt.keepDark&&sr+sg+sb<240?0:sat<40?.8:opt.dough*.5;R=R*(1-k)+DOUGH[0]*k;G=G*(1-k)+DOUGH[1]*k;B=B*(1-k)+DOUGH[2]*k;
       const g=(R+G+B)/3;R=R*.82+g*.18;G=G*.82+g*.18;B=B*.82+g*.18;}
     const n=(r()-.5)*(opt.grain||10)+(r()<.0015?-22:0); // 麵團顆粒＋小黑點
     let spec=opt.gloss?Math.pow(Math.max(0,L),14)*opt.gloss*255:Math.pow(Math.max(0,L),6)*(opt.spec??18);
@@ -346,10 +363,17 @@ function composeReal(){
   paintHair();
   const h=realize(hair,{dough:.22,bake:.5,h:18,flat:.86,amp:.24,spec:5,grain:14});
   const dl=mk(W);drawDecos(dl.getContext('2d'),true);
-  const dd=realize(dl,{dough:.12,bake:.35,h:10,flat:.86,amp:.24,spec:4,grain:16});
+  const dd=realize(dl,{dough:.12,bake:.35,h:10,flat:.86,amp:.24,spec:4,grain:16,keepDark:1});
   const out=mk(W),g=out.getContext('2d');
   g.fillStyle=CARD;g.fillRect(0,0,W,W);
   g.drawImage(photo,OX,OY,W*SC,W*SC);
+  if(eyes=='smile'){ // 照片的巧克力圓眼 → 用上方的粉色麵團蓋掉，再擠笑瞇瞇眼
+    const P=(x,y)=>[OX+x*SC,OY+y*SC];
+    [[407,334],[593,334]].forEach(([x,y])=>{const [cx,cy]=P(x,y),r=19*SC,dy=34*SC;const t=mk(W),q=t.getContext('2d');
+      q.drawImage(photo,OX,OY-(-dy),W*SC,W*SC);q.globalCompositeOperation='destination-in';const gr=q.createRadialGradient(cx,cy,r*.6,cx,cy,r);gr.addColorStop(0,'#000');gr.addColorStop(1,'rgba(0,0,0,0)');q.fillStyle=gr;q.fillRect(cx-r,cy-r,2*r,2*r);g.drawImage(t,0,0)});
+    const el=mk(W),e=el.getContext('2d');e.strokeStyle='#3E2326';e.lineWidth=12*SC;e.lineCap='round';
+    [[407,348],[593,348]].forEach(([x,y])=>{const [cx,cy]=P(x,y);e.beginPath();e.arc(cx,cy,22*SC,Math.PI+.3,-.3);e.stroke()});
+    const er=realize(el,{h:4,flat:.8,amp:.4,gloss:.25,grain:6,bake:0});g.globalAlpha=.4;g.drawImage(shadowOf(er.A,2,4,3,.8),0,0);g.globalAlpha=1;g.drawImage(er.c,0,0)}
   g.globalAlpha=.4;g.drawImage(shadowOf(h.A,5,9,10,.8),0,0);g.drawImage(shadowOf(dd.A,6,10,6,.9),0,0);g.globalAlpha=1;
   g.drawImage(h.c,0,0);g.drawImage(dd.c,0,0);
   return out}
@@ -360,15 +384,17 @@ function scoreIt(){
   for(let i=0;i<W*W;i++){if(d[i*4+3]<128)continue;tot++;if(target.a[i])hit++;if(face.a[i])faceHit++;if(i%37==0)cols.add((d[i*4]>>5)+'-'+(d[i*4+1]>>5)+'-'+(d[i*4+2]>>5))}
   cov=hit/target.n;
   const colorN=new Set(strokes.filter(s=>!s.erase).map(s=>s.c)).size;
-  let s=55+Math.min(1,cov/.3)*28+Math.min(colorN,3)*2+Math.min(decos.length,3)*2+(tot>12000?3:0);
+  const kinds=new Set(decos.map(d=>d.k)).size; // 裝扮越豐富分數越高：頭髮＋多種裝飾＋顏色＋換表情
+  let s=50+Math.min(1,cov/.3)*22+Math.min(kinds,4)*3+Math.min(decos.length,5)+Math.min(colorN,3)*2+(eyes!='dot'?2:0)+(tot>12000?3:0);
   let msg;
   if(faceHit/face.n>.4){s-=12;msg='頭髮蓋到眼睛鼻子了，老公公看不到路了！'}
   s=Math.round(Math.max(30,Math.min(100,s)));
-  if(!msg)msg=s>=98?'太帥了！老公公要去拍雜誌封面了':s>=90?'好暖！老公公今年不怕冷了':s>=75?'有長出來了！頭頂再多畫一點':'頭頂還涼涼的，再多畫一點頭髮';
+  if(!msg)msg=s>=98?'太會打扮了！老公公變成派對巨星':s>=90?'超有型！老公公準備好去派對了':
+    s>=75?(kinds<2?'再加幾個裝飾，老公公會更有派對感':cov<.2?'頭頂空空的，畫點頭髮或戴頂帽子吧':'再多一點顏色和創意就更好了'):'還不夠熱鬧！畫頭髮、戴墨鏡、加裝飾都可以';
   return{s,msg}}
 
 $('bDone').onclick=async()=>{
-  if(!strokes.length){const sb=$('sub');sb.textContent='老公公還沒有頭髮！先畫幾筆';sb.style.color='#B3262E';setTimeout(()=>{sb.textContent='看看能得幾分？九十分以上有小禮物';sb.style.color=''},2200);return}
+  if(!strokes.length&&!decos.length){const sb=$('sub');sb.textContent='老公公還沒打扮！先畫幾筆或加個裝飾';sb.style.color='#B3262E';setTimeout(()=>{sb.textContent='看看能得幾分？90 分以上有小禮物';sb.style.color=''},2200);return}
   if(mode!='draw')return;
   sel=-1;render();const res=scoreIt();track('santa_done',{score:res.s});
   await (photo.complete?0:new Promise(r=>photo.onload=r));
@@ -385,7 +411,7 @@ $('bDone').onclick=async()=>{
     let n=0;const t=setInterval(()=>{n+=3;if(n%9==0)SFX.tick();if(n>=res.s){n=res.s;clearInterval(t);if(res.s>=90){SFX.win();buzz([30,50,30])}}$('sc').textContent=n},20);
     lastScore=res.s;$('cm').textContent=res.msg;$('cp').style.display=res.s>=90?'block':'none';$('code').textContent=res.s>=90?cpCode():'';
     postH();
-    $('bShop').firstChild.textContent=res.s>=90?'帶老公公回家 ♡':'努力拿到九十分有小禮物喔！';},700)};
+    $('bShop').firstChild.textContent=res.s>=90?'帶老公公回家 ♡':'努力拿到 90 分有小禮物喔！';},700)};
 // ---------- 變身特效：星星灑落＋閃爍＋一道光掃過（不閃白）----------
 function sparkle(){
   const fx=$('fx'),g=fx.getContext('2d');const R=rnd(Date.now()%9973+1);
@@ -412,13 +438,37 @@ $('bShop').addEventListener('click',()=>{SFX.tap();track('santa_shop_click',{sco
   if(lastScore>=90){const code=$('code').textContent;try{navigator.clipboard.writeText(code).catch(()=>{})}catch(e){}
     $('bShop').firstChild.textContent='折扣碼已複製 ✓';setTimeout(()=>{$('bShop').firstChild.textContent='帶老公公回家 ♡'},2500);setTimeout(goProducts,600)}
   else $('bAgain').click()}); // 沒到 90 分：鼓勵再畫一次
-$('bShare').onclick=()=>{ // 分享變身後的圖（手機叫出分享選單，電腦直接下載）
+// 拍立得分享圖：1080×1350（IG 貼文比例），圖上印網址，只傳圖片也找得到遊戲
+async function makeCard(){
+  const F='"Zen Maru Gothic","Noto Sans TC",sans-serif';
+  try{await Promise.all(['900 60px','700 30px'].map(w=>document.fonts.load(w+' "Zen Maru Gothic"','我的派對老公公分一起來裝扮聖誕快樂0123456789beafoo.com/pages/santa-hair chubby doo')))}catch(e){}
+  const CW=1080,CHh=1350,k=mk(CW,CHh),g=k.getContext('2d');
+  g.fillStyle=CARD;g.fillRect(0,0,CW,CHh);
+  const r=rnd(11);for(let i=0;i<140;i++){g.fillStyle='rgba(255,255,255,'+(.25+r()*.5)+')';g.beginPath();g.arc(r()*CW,r()*CHh,1.5+r()*3.5,0,7);g.fill()}
+  g.textAlign='center';g.fillStyle='#FBF3E4';g.font='900 64px '+F;g.fillText('裝扮老公公參加派對',CW/2,118);
+  // 拍立得
+  g.save();g.translate(CW/2,640);g.rotate(-.035);
+  const PW=800,PH=930,ph=720;g.shadowColor='rgba(0,0,0,.35)';g.shadowBlur=40;g.shadowOffsetY=16;g.fillStyle='#FFFDF8';g.fillRect(-PW/2,-PH/2,PW,PH);g.shadowColor='transparent';
+  g.drawImage(cv,-ph/2,-PH/2+40,ph,ph);g.strokeStyle='rgba(0,0,0,.06)';g.lineWidth=2;g.strokeRect(-ph/2,-PH/2+40,ph,ph);
+  g.fillStyle='#5A3424';g.textAlign='left';g.font='900 52px '+F;g.fillText('我的派對老公公',-ph/2+6,PH/2-70);
+  g.textAlign='right';g.fillStyle='#B3262E';g.font='900 92px '+F;const sw=g.measureText(String(lastScore)).width;g.fillText(String(lastScore),ph/2-46,PH/2-58);
+  g.font='900 40px '+F;g.fillText('分',ph/2-2,PH/2-60);
+  // 膠帶
+  g.rotate(.05);g.fillStyle='rgba(226,184,78,.82)';g.fillRect(-90,-PH/2-26,180,52);g.restore();
+  // 下方：連結
+  g.textAlign='center';g.fillStyle='#FBF3E4';g.font='900 46px '+F;g.fillText('一起來裝扮老公公 ✦',CW/2,1210);
+  g.font='700 34px '+F;g.fillStyle='#F2D79A';g.fillText('beafoo.com/pages/santa-hair',CW/2,1266);
+  g.font='700 26px '+F;g.fillStyle='rgba(251,243,228,.7)';g.fillText('chubby doo',CW/2,1314);
+  return k}
+window.__card=makeCard;
+$('bShare').onclick=async()=>{ // 分享拍立得圖＋連結（手機叫出分享選單，電腦直接下載）
   SFX.tap();track('santa_share',{score:lastScore});
   const url=PAGE+'?utm_source=friend_share&utm_medium=social&utm_campaign='+CAMP;
-  cv.toBlob(async b=>{const f=new File([b],'chubbydoo-santa.png',{type:'image/png'});
-    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:'我幫聖誕老公公畫了頭髮！你也來試試 🎅 '+url});return}}catch(e){return}
+  const k=await makeCard();
+  k.toBlob(async b=>{const f=new File([b],'chubbydoo-santa.png',{type:'image/png'});
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:'我幫聖誕老公公打扮去派對，拿到 '+lastScore+' 分！一起來玩 🎅 '+url});return}}catch(e){return}
     const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='chubbydoo-santa.png';a.click()},'image/png')};
-$('bAgain').onclick=()=>{SFX.tap();track('santa_again');strokes.length=0;decos.length=0;lastOps.length=0;mode='draw';$('draw').style.display='';$('result').style.display='none';$('ttl').textContent='快畫頭髮！老公公好冷';$('sub').style.display='';render();postH()};
+$('bAgain').onclick=()=>{SFX.tap();track('santa_again');strokes.length=0;decos.length=0;eyes='dot';document.querySelectorAll('#eyes .deco').forEach((x,i)=>x.classList.toggle('on',!i));lastOps.length=0;mode='draw';$('draw').style.display='';$('result').style.display='none';$('ttl').textContent='裝扮老公公參加派對';$('sub').style.display='';render();postH()};
 
 // ---------- 樣張用：自動畫一頂捲髮 ----------
 window.__demo=(n,col,lw)=>{
@@ -438,8 +488,8 @@ $('snd').addEventListener('click',()=>{muted=!muted;$('sndt').textContent=muted?
 const now=Date.now();
 if(LIVE&&(now<EV_START||now>=EV_END)){
   const before=now<EV_START;mode='closed';
-  $('sub').textContent=before?'12/3 開始畫頭髮！畫到 90 分送聖誕千層酥 95 折':'活動已結束，明年見';
-  if(!before)$('ttl').textContent='謝謝大家！老公公不冷了';
+  $('sub').textContent=before?'12/3 開始裝扮老公公！畫到 90 分送聖誕千層酥 95 折':'活動已結束，明年見';
+  if(!before)$('ttl').textContent='謝謝大家！派對圓滿成功';
   $('draw').querySelector('.tools').style.opacity=.45;$('draw').querySelector('.tools').style.pointerEvents='none';
   const b=$('bDone');b.firstChild.textContent=before?'12/3 開放 ✦':'去看看聖誕千層酥';b.disabled=before;if(!before)b.onclick=()=>{SFX.tap();goProducts()};
   $('draw').querySelector('.tip').style.display='none';
