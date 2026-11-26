@@ -585,7 +585,8 @@ $('bShare').onclick=async()=>{ // 分享拍立得圖＋連結（手機叫出分�
   const url=PAGE+'?utm_source=friend_share&utm_medium=social&utm_campaign='+CAMP;
   const k=cardCanvas||await makeCard();
   k.toBlob(async b=>{const f=new File([b],'chubbydoo-santa.png',{type:'image/png'});
-    try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:'我幫聖誕老公公打扮去派對，拿到 '+lastScore+' 分！一起來玩 🎅 '+url});return}}catch(e){return}
+    try{if(navigator.canShare&&navigator.canShare({files:[f]})){const mobile=matchMedia('(pointer:coarse)').matches; // 電腦版 Chrome 同時帶圖＋文字，部分 App 會出現兩張圖 → 電腦只傳圖（圖上已印網址）
+      await navigator.share(mobile?{files:[f],text:'我幫聖誕老公公打扮去派對！一起來玩 🎅 '+url}:{files:[f]});return}}catch(e){return}
     const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='chubbydoo-santa.png';a.click()},'image/png')};
 $('realImg').src=photo.src;$('real').onclick=()=>{SFX.tap();track('santa_real_click',{score:lastScore});goProducts()};
 $('bAgain').onclick=()=>{SFX.tap();track('santa_again');strokes.length=0;decos.length=0;eyes='dot';document.querySelectorAll('#eyes .deco').forEach((x,i)=>x.classList.toggle('on',!i));lastOps.length=0;mode='draw';shot=cardCanvas=null;$('stage').style.display='';$('draw').style.display='';$('result').style.display='none';$('ttl').textContent='裝扮老公公參加派對';$('sub').style.display='';render();postH()};
