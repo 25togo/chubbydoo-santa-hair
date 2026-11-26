@@ -385,7 +385,7 @@ $('bDone').onclick=async()=>{
     let n=0;const t=setInterval(()=>{n+=3;if(n%9==0)SFX.tick();if(n>=res.s){n=res.s;clearInterval(t);if(res.s>=90){SFX.win();buzz([30,50,30])}}$('sc').textContent=n},20);
     lastScore=res.s;$('cm').textContent=res.msg;$('cp').style.display=res.s>=90?'block':'none';$('code').textContent=res.s>=90?cpCode():'';
     postH();
-    $('bShop').firstChild.textContent=res.s>=90?'帶老公公回家 ♡':'去看看真的老公公';},700)};
+    $('bShop').firstChild.textContent=res.s>=90?'帶老公公回家 ♡':'努力拿到九十分有小禮物喔！';},700)};
 // ---------- 變身特效：星星灑落＋閃爍＋一道光掃過（不閃白）----------
 function sparkle(){
   const fx=$('fx'),g=fx.getContext('2d');const R=rnd(Date.now()%9973+1);
@@ -411,7 +411,7 @@ let lastScore=0;
 $('bShop').addEventListener('click',()=>{SFX.tap();track('santa_shop_click',{score:lastScore});
   if(lastScore>=90){const code=$('code').textContent;try{navigator.clipboard.writeText(code).catch(()=>{})}catch(e){}
     $('bShop').firstChild.textContent='折扣碼已複製 ✓';setTimeout(()=>{$('bShop').firstChild.textContent='帶老公公回家 ♡'},2500);setTimeout(goProducts,600)}
-  else goProducts()});
+  else $('bAgain').click()}); // 沒到 90 分：鼓勵再畫一次
 $('bShare').onclick=()=>{ // 分享變身後的圖（手機叫出分享選單，電腦直接下載）
   SFX.tap();track('santa_share',{score:lastScore});
   const url=PAGE+'?utm_source=friend_share&utm_medium=social&utm_campaign='+CAMP;
