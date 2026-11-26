@@ -100,7 +100,7 @@ h1{margin:6px 0 4px;font-family:"Zen Maru Gothic","Noto Sans TC",sans-serif;font
  <div class="coupon" id="cp">
   <div class="t">聖誕軟餅乾千層酥 95 折優惠碼</div>
   <div class="c" id="code"></div>
-  <div class="n">結帳輸入折扣碼即可使用｜活動至 12/14</div>
+  <div class="n">結帳輸入折扣碼即可使用｜活動至 12/25</div>
  </div>
  <button class="cta" id="bShop" style="margin-top:12px">帶老公公回家 ♡</button>
  <div class="two"><button class="btn" id="bAgain">再畫一次</button><button class="btn" id="bShare">分享我的老公公</button></div>
@@ -116,8 +116,8 @@ const S=window.SHAPES;
 // ---------- 版本設定（build_public.py 會替換）----------
 const MODE='test';  // live＝正式版（只在活動期間開放、有 GA）；test＝測試版（隨時可玩）
 const LIVE=MODE==='live';
-// 活動期間（台北時間）：12/3（四）00:00 ～ 12/14（一）23:59
-const EV_START=Date.parse('2026-12-03T00:00:00+08:00'),EV_END=Date.parse('2026-12-15T00:00:00+08:00');
+// 活動期間（台北時間）：12/1（二）00:00 ～ 12/25（五）23:59
+const EV_START=Date.parse('2026-12-01T00:00:00+08:00'),EV_END=Date.parse('2026-12-26T00:00:00+08:00');
 const PAGE='https://www.beafoo.com/pages/santa-party';   // 官網上的遊戲分頁（下方有聖誕千層酥商品）
 const CAMP='xmas2026_santa_hair';
 const IN_FRAME=(()=>{try{return window.top!==window.self}catch(e){return true}})();
@@ -613,10 +613,10 @@ $('snd').addEventListener('click',()=>{muted=!muted;$('sndt').textContent=muted?
 const now=Date.now();
 if(LIVE&&(now<EV_START||now>=EV_END)){
   const before=now<EV_START;mode='closed';
-  $('sub').textContent=before?'12/3 開始裝扮老公公！畫到 90 分送聖誕千層酥 95 折':'活動已結束，明年見';
+  $('sub').textContent=before?'12/1 開始裝扮老公公！畫到 90 分送聖誕千層酥 95 折':'活動已結束，明年見';
   if(!before)$('ttl').textContent='謝謝大家！派對圓滿成功';
   $('draw').querySelector('.tools').style.opacity=.45;$('draw').querySelector('.tools').style.pointerEvents='none';
-  const b=$('bDone');b.firstChild.textContent=before?'12/3 開放 ✦':'去看看聖誕千層酥';b.disabled=before;if(!before)b.onclick=()=>{SFX.tap();goProducts()};
+  const b=$('bDone');b.firstChild.textContent=before?'12/1 開放 ✦':'去看看聖誕千層酥';b.disabled=before;if(!before)b.onclick=()=>{SFX.tap();goProducts()};
   $('draw').querySelector('.tip').style.display='none';
 }
 if(IN_FRAME)$('app').style.minHeight='0'; // 嵌在官網時高度跟著內容走，外層 iframe 才不會留空白
