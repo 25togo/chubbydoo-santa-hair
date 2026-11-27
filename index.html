@@ -21,7 +21,7 @@ h1{margin:6px 0 4px;font-family:"Zen Maru Gothic","Noto Sans TC",sans-serif;font
 .stage{position:relative;width:100%;aspect-ratio:1;border-radius:22px;background:#1F4A3A;
  box-shadow:0 2px 0 var(--line),0 10px 24px rgba(90,52,36,.12);overflow:hidden;touch-action:none}
 .stage canvas{position:absolute;inset:0;width:100%;height:100%}
-.tools{margin-top:12px;display:grid;gap:10px}
+.tools{margin-top:12px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
 .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .lab{font-size:12px;font-weight:700;width:34px;flex:none;opacity:.7}
 .sw{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px var(--line);cursor:pointer;flex:none}
@@ -34,6 +34,11 @@ h1{margin:6px 0 4px;font-family:"Zen Maru Gothic","Noto Sans TC",sans-serif;font
 .deco{width:44px;height:44px;border-radius:12px;background:#fff;border:1.5px solid var(--line);cursor:pointer;padding:3px;flex:none}
 .deco.on{border-color:#C9A24A;box-shadow:0 0 0 2px #E2B84E}
 .deco canvas{width:100%;height:100%;display:block}
+/* 裝飾／眼睛一行橫滑，右邊淡出提示還有 */
+.strip{flex:1;min-width:0;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:3px 2px;touch-action:pan-x;
+ -webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+.strip::-webkit-scrollbar{display:none}
+.strip.end{-webkit-mask-image:none;mask-image:none}
 .cta{display:block;box-sizing:border-box;width:100%;margin-top:14px;padding:14px;border:0;border-radius:30px;background:var(--red);color:#fff;
  font:900 19px "Noto Sans TC",sans-serif;letter-spacing:.1em;box-shadow:0 4px 0 var(--red2);cursor:pointer}
 .tip{font-size:12px;text-align:center;opacity:.6;margin-top:8px}
@@ -85,8 +90,8 @@ h1{margin:6px 0 4px;font-family:"Zen Maru Gothic","Noto Sans TC",sans-serif;font
   <div class="row"><span class="lab">粗細</span><div class="row" id="sizes" style="gap:6px"></div>
    <span style="flex:1"></span>
    <button class="btn" id="bErase">橡皮擦</button><button class="btn" id="bUndo">復原</button></div>
-  <div class="row"><span class="lab" style="align-self:flex-start;margin-top:14px">裝飾</span><div class="row" id="decos" style="gap:6px;flex:1"></div></div>
-  <div class="row"><span class="lab" style="align-self:flex-start;margin-top:14px">眼睛</span><div class="row" id="eyes" style="gap:6px;flex:1"></div></div>
+  <div class="row"><span class="lab">裝飾</span><div class="row strip" id="decos" style="gap:6px"></div></div>
+  <div class="row"><span class="lab">眼睛</span><div class="row strip" id="eyes" style="gap:6px"></div></div>
  </div>
  <button class="cta" id="bDone">畫好了！拍派對照 📸</button>
  <div class="tip">裝飾點一下放上去，按住移動；拉右下角圓鈕可縮放、旋轉</div>
@@ -356,6 +361,8 @@ EYES.forEach(([k,nm],i)=>{const d=document.createElement('div');d.className='dec
   const c=mk(120),q=c.getContext('2d');q.fillStyle='#F9CBAE';q.beginPath();q.arc(60,60,58,0,7);q.fill();q.save();q.translate(60,62);q.scale(.52,.52);q.translate(-500,-326);drawEyes(q,k);q.restore();d.appendChild(c);
   d.onclick=()=>{if(mode!='draw')return;SFX.tap();buzz();eyes=k;document.querySelectorAll('#eyes .deco').forEach(x=>x.classList.remove('on'));d.classList.add('on');render()};addHap(d);$('eyes').appendChild(d)});
 $('bErase').onclick=()=>{SFX.tap();erasing=!erasing;$('bErase').classList.toggle('on',erasing)};
+document.querySelectorAll('.strip').forEach(el=>{const f=()=>el.classList.toggle('end',el.scrollLeft+el.clientWidth>=el.scrollWidth-4);el.addEventListener('scroll',f,{passive:true});addEventListener('resize',f);setTimeout(f,50);
+  el.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)&&el.scrollWidth>el.clientWidth){el.scrollLeft+=e.deltaY;e.preventDefault()}},{passive:false})});
 $('bUndo').onclick=()=>{SFX.tap(); if(lastOps.length){const o=lastOps.pop();if(o=='s')strokes.pop();else decos.pop();render()} };
 const lastOps=[];
 
