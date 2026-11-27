@@ -469,6 +469,8 @@ function scoreIt(){
   const d=hctx.getImageData(0,0,W,W).data;let hit=0,cov=0,faceHit=0,tot=0;const cols=new Set();
   for(let i=0;i<W*W;i++){if(d[i*4+3]<128)continue;tot++;if(target.a[i])hit++;if(face.a[i])faceHit++;if(i%37==0)cols.add((d[i*4]>>5)+'-'+(d[i*4+1]>>5)+'-'+(d[i*4+2]>>5))}
   cov=hit/target.n;
+  const capped=decos.some(d=>/hat|santa|crown|antler/.test(d.k)); // 戴帽子／皇冠／角＝頭頂有打扮，頭髮分給滿
+  if(capped)cov=Math.max(cov,.3);
   const colorN=new Set(strokes.filter(s=>!s.erase).map(s=>s.c)).size;
   const kinds=new Set(decos.map(d=>d.k)).size; // 裝扮越豐富分數越高：頭髮＋多種裝飾＋顏色＋換表情
   let s=50+Math.min(1,cov/.3)*22+Math.min(kinds,4)*4+Math.min(decos.length,5)+Math.min(colorN,3)*2+(eyes!='dot'?2:0)+(tot>12000?3:0);
@@ -476,7 +478,7 @@ function scoreIt(){
   if(faceHit/face.n>.4){s-=12;msg='頭髮蓋到眼睛鼻子了，老公公看不到路了！'}
   s=Math.round(Math.max(30,Math.min(100,s)));
   if(!msg)msg=s>=98?'太會打扮了！老公公變成派對巨星':s>=90?'超有型！老公公準備好去派對了':
-    s>=75?(kinds<2?'再加幾個裝飾，老公公會更有派對感':cov<.2&&tot<12000&&!decos.some(d=>/hat|santa|crown|antler/.test(d.k))?'頭頂空空的，畫點頭髮或戴頂帽子吧':'再多一點顏色和創意就更好了'):'還不夠熱鬧！畫頭髮、戴墨鏡、加裝飾都可以';
+    s>=75?(kinds<2?'再加幾個裝飾，老公公會更有派對感':cov<.2&&tot<12000?'頭頂空空的，畫點頭髮或戴頂帽子吧':'再多一點顏色和創意就更好了'):'還不夠熱鬧！畫頭髮、戴墨鏡、加裝飾都可以';
   return{s,msg}}
 
 $('bDone').onclick=async()=>{
