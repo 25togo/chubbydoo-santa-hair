@@ -568,7 +568,7 @@ $('bShop').addEventListener('click',()=>{SFX.tap();track('santa_shop_click',{sco
 // 拍立得下方的一句話：看老公公戴了什麼來決定（同類有多個就隨機挑）
 const CAPS={shades:'今天的派對我最酷',heartg:'派對上遇見真愛了',starg:'今天我就是巨星',roundg:'其實我是學霸老公公',hat:'派對要開始了！',santa:'聖誕帽才是本命',
   crown:'派對之王駕到',antler:'今天兼職當麋鹿',horn:'叭叭！派對開始',gift:'禮物我自己帶來了',balloon:'氣球比我還開心',
-  e_star:'眼睛裡有星星',e_heart:'看到千層酥就心動',e_sleep:'派對太久了好想睡',e_wink:'對大家放電中',e_smile:'笑到眼睛不見了',hair:'新髮型很潮對不對',none:'準備好開派對了'};
+  e_star:'眼睛裡有星星',e_heart:'心動的感覺回來了',e_sleep:'派對太久了好想睡',e_wink:'對大家放電中',e_smile:'笑到眼睛不見了',hair:'新髮型很潮對不對',none:'準備好開派對了'};
 function captionOf(){const ks=[...new Set(decos.map(d=>d.k))].filter(k=>CAPS[k]);if(eyes!='dot')ks.push('e_'+eyes);
   if(!ks.length)ks.push(strokes.length?'hair':'none');return CAPS[ks[Math.floor(Math.random()*ks.length)]]}
 captionOf.all=Object.values(CAPS).join('');
