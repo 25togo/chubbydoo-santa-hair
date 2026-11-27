@@ -476,7 +476,7 @@ function scoreIt(){
   if(faceHit/face.n>.4){s-=12;msg='頭髮蓋到眼睛鼻子了，老公公看不到路了！'}
   s=Math.round(Math.max(30,Math.min(100,s)));
   if(!msg)msg=s>=98?'太會打扮了！老公公變成派對巨星':s>=90?'超有型！老公公準備好去派對了':
-    s>=75?(kinds<2?'再加幾個裝飾，老公公會更有派對感':cov<.2?'頭頂空空的，畫點頭髮或戴頂帽子吧':'再多一點顏色和創意就更好了'):'還不夠熱鬧！畫頭髮、戴墨鏡、加裝飾都可以';
+    s>=75?(kinds<2?'再加幾個裝飾，老公公會更有派對感':cov<.2&&tot<12000&&!decos.some(d=>/hat|santa|crown|antler/.test(d.k))?'頭頂空空的，畫點頭髮或戴頂帽子吧':'再多一點顏色和創意就更好了'):'還不夠熱鬧！畫頭髮、戴墨鏡、加裝飾都可以';
   return{s,msg}}
 
 $('bDone').onclick=async()=>{
